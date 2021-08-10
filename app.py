@@ -3,6 +3,7 @@ from flask_jwt_extended import JWTManager
 
 from database import db
 from config.config import Config
+from resources import register_resources
 from errors import Error, StatusCode, NotFoundError
 
 app = Flask(__name__)
@@ -15,6 +16,9 @@ jwt = JWTManager(app)
 
 # setting up SQLAlchemy
 db.init_app(app)
+
+# binding routes to its resources
+register_resources(app)
 
 
 @app.errorhandler(StatusCode.NOT_FOUND)
