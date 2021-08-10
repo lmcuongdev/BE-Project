@@ -9,14 +9,14 @@ from errors import SchemaValidationError
 
 class CategoryList(Resource):
     def get(self):
-        # check if query parameter is in valid format
+        # Check if query parameter is in valid format
         query_param_schema = CategoryQueryParameterSchema()
         try:
             params = query_param_schema.load(request.args)
         except ValidationError as e:
             raise SchemaValidationError(e.messages)
 
-        # find all the categories that match these query data
+        # Find all the categories that match these query data
         category_page = CategoryModel.query \
             .filter(params['keyword']) \
             .order_by(params['sort_type']) \
@@ -25,7 +25,7 @@ class CategoryList(Resource):
                       error_out=False
                       )
 
-        # reformat the data before the response
+        # Reformat the data before the response
         categories = CategorySchema(many=True).dump(category_page.items)
 
         return {

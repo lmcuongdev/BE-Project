@@ -3,7 +3,7 @@ from datetime import timedelta
 
 
 class Config:
-    # database connection
+    # Database connection
     SQLALCHEMY_DATABASE_URI = environ.get('MYSQL_URL')
 
     # JWT
@@ -13,5 +13,8 @@ class Config:
     ))
     JWT_ERROR_MESSAGE_KEY = environ.get('MESSAGE_KEY', 'error_message')
     JWT_HEADER_TYPE = environ.get('JWT_HEADER_TYPE', 'Bearer')
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = False
+
+    TIMESTAMP_FORMAT = '%Y-%m-%d %H:%M:%S'

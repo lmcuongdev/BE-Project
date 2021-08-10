@@ -22,10 +22,15 @@ register_resources(app)
 
 
 @app.errorhandler(StatusCode.NOT_FOUND)
-def not_found_handler():
+def not_found_handler(error):
     return NotFoundError().get_response()
 
 
 @app.errorhandler(Error)
 def error_handler(error):
     return error.get_response()
+
+# @app.errorhandler(Exception)
+# def exception_handler(error):
+#     print(type(error))
+#     return Error().get_response()
