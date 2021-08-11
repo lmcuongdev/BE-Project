@@ -39,7 +39,7 @@ def jwt_required(fn):
         try:
             algo = get_unverified_header(token)['alg']
             user_id = decode(token, Config.JWT_SECRET_KEY, algorithms=[algo])['user_id']
-        except PyJWTError as e:
+        except PyJWTError:
             raise InvalidTokenError()
 
         # Get the authenticated user from database and pass it to the function being decorated

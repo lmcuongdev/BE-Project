@@ -5,11 +5,13 @@ from database import db
 from config.config import Config
 from resources import register_resources
 from errors import Error, StatusCode, NotFoundError
+import logging
 
 app = Flask(__name__)
 
 # configuring
 app.config.from_object(Config)
+logging.basicConfig(filename='logs.log', level=logging.DEBUG)
 
 # setting up JWT
 jwt = JWTManager(app)
@@ -30,7 +32,8 @@ def not_found_handler(error):
 def error_handler(error):
     return error.get_response()
 
-# @app.errorhandler(Exception)
-# def exception_handler(error):
-#     print(type(error))
-#     return Error().get_response()
+
+@app.errorhandler(Exception)
+def exception_handler(error):
+    logging.error(error, exc_info=True)
+    return Error().get_response()

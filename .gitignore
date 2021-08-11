@@ -4,7 +4,11 @@ venv/
 __pycache__/
 
 .pytest_cache/
+conftest.py
 
 .env
 
 .idea/
+
+logs/
+logs.log
