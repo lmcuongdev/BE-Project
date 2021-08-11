@@ -1,19 +1,25 @@
 from marshmallow import Schema, fields, validate, post_load, validates, ValidationError
 
-from schemas.base_query_parameter import QueryParameterSchema
-from models.item import ItemModel
+from config.config import General
 from models.category import CategoryModel
-from config.config import Config
+from models.item import ItemModel
+from schemas.base_query_parameter import QueryParameterSchema
 
 
 class ItemSchema(Schema):
     id = fields.Integer()
-    name = fields.String(required=True)
-    description = fields.String(required=True)
+    name = fields.String(required=True,
+                         validate=[
+                             validate.Length(max=200)
+                         ])
+    description = fields.String(required=True,
+                                validate=[
+                                    validate.Length(max=2000)
+                                ])
     user_id = fields.Integer(required=True)
     category_id = fields.Integer(required=True)
-    created_at = fields.DateTime(format=Config.TIMESTAMP_FORMAT)
-    updated_at = fields.DateTime(format=Config.TIMESTAMP_FORMAT)
+    created_at = fields.DateTime(format=General.TIMESTAMP_FORMAT)
+    updated_at = fields.DateTime(format=General.TIMESTAMP_FORMAT)
 
     @validates('category_id')
     def validate_category_id(self, category_id):

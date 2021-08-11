@@ -3,8 +3,8 @@ from flask_bcrypt import check_password_hash
 from flask_restful import Resource
 from marshmallow import ValidationError
 
-from errors import NotFoundError, PermissionDeniedError, UnauthorizedError, SchemaValidationError, \
-    IncorrectCredentialError
+from errors import NotFoundError, PermissionDeniedError, SchemaValidationError, \
+    IncorrectCredentialError, BadRequestError
 from helpers.auth import create_access_token, jwt_required
 from models.user import UserModel
 from schemas.auth import AccessTokenSchema
@@ -41,7 +41,7 @@ class UserRegister(Resource):
 
         # Check if username existed
         if UserModel.has_username(valid_data['username']):
-            raise UnauthorizedError(message='Username already existed.')
+            raise BadRequestError(message='Username already existed.')
 
         # Create new User
         user = UserModel(**valid_data)

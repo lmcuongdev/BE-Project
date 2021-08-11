@@ -1,14 +1,14 @@
-from marshmallow import Schema, fields, validate, post_load, post_dump
+from marshmallow import Schema, fields, validate, post_load
 
-from schemas.base_query_parameter import QueryParameterSchema
+from config.config import General
 from models.category import CategoryModel
-from config.config import Config
+from schemas.base_query_parameter import QueryParameterSchema
 
 
 class CategorySchema(Schema):
     id = fields.Integer()
     name = fields.String(required=True)
-    created_at = fields.DateTime(format=Config.TIMESTAMP_FORMAT)
+    created_at = fields.DateTime(format=General.TIMESTAMP_FORMAT)
 
 
 class CategoryQueryParameterSchema(QueryParameterSchema):

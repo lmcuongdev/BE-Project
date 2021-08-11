@@ -2,7 +2,7 @@ from flask import request
 from flask_restful import Resource
 from marshmallow import ValidationError
 
-from errors import SchemaValidationError, NotFoundError, PermissionDeniedError
+from errors import SchemaValidationError, NotFoundError
 from helpers.auth import jwt_required, item_owner_required
 from models.item import ItemModel
 from schemas.item import ItemSchema, ItemQueryParameterSchema

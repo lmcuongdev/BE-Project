@@ -33,7 +33,9 @@ def jwt_required(fn):
 
         # Get the token
         data = request.headers['Authorization']
-        token = str.replace(str(data), 'Bearer ', '')
+        if data is None:
+            raise InvalidTokenError()
+        token = data.replace('Bearer ', '')
 
         # Decode the token to get the user_id stored in payload
         try:
