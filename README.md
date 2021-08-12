@@ -31,7 +31,7 @@ cp .env.example .env
 ## Starting the application
 To start running an instance of the server on local machine
 ```
-python main.py
+flask run --port 8888
 ```
 
 ## Testing
