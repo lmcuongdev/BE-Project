@@ -1,5 +1,5 @@
 from flask import request
-from flask_bcrypt import check_password_hash
+from flask_bcrypt import check_password_hash, generate_password_hash
 from flask_restful import Resource
 from marshmallow import ValidationError
 
@@ -43,11 +43,13 @@ class UserRegister(Resource):
         if UserModel.has_username(valid_data['username']):
             raise BadRequestError(message='Username already existed.')
 
+        hash_password = generate_password_hash(valid_data['password'])
+
         # Create new User
-        user = UserModel(**valid_data)
+        user = UserModel(username=valid_data['username'], password=hash_password)
         user.save()
 
-        return {}, 200
+        return {}
 
 
 class UserLogin(Resource):

@@ -39,19 +39,15 @@ class ItemList(Resource):
 
     @jwt_required
     def post(self, auth_user):
-        #  Get the data sent from client
-        payload = request.get_json()
-        payload['user_id'] = auth_user.id
-
         # Validate input
-        item_schema = ItemSchema(only=('name', 'description', 'user_id', 'category_id'))
+        item_schema = ItemSchema(only=('name', 'description', 'category_id'))
         try:
-            valid_data = item_schema.load(payload)
+            valid_data = item_schema.load(request.get_json())
         except ValidationError as e:
             raise SchemaValidationError(error_messages=e.messages)
 
         # Create new item
-        item = ItemModel(**valid_data)
+        item = ItemModel(user_id=auth_user.id, **valid_data)
         item.save()
 
         data = ItemSchema().dump(item)
@@ -72,7 +68,7 @@ class Item(Resource):
 
     @jwt_required
     @item_owner_required
-    def put(self, item_id, auth_user, item):
+    def put(self, item, **_kwargs):
         # Get request body and validate input
         payload = request.get_json()
         item_schema = ItemSchema(only=('name', 'description', 'category_id'))
@@ -91,7 +87,7 @@ class Item(Resource):
 
     @jwt_required
     @item_owner_required
-    def delete(self, item_id, auth_user, item):
+    def delete(self, item, **_kwargs):
         item.delete()
 
         return {}

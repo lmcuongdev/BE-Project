@@ -13,7 +13,7 @@ from models.user import UserModel
 def create_access_token(user_id):
     """Create the access token and put user_id in the payload"""
     access_token = encode({
-        'user_id': user_id,
+        'jti': user_id,
         'exp': datetime.utcnow() + Config.JWT_ACCESS_TOKEN_EXPIRES
     }, Config.JWT_SECRET_KEY)
 
@@ -33,14 +33,14 @@ def jwt_required(fn):
 
         # Get the token
         data = request.headers['Authorization']
-        if data is None:
+        if not data.startswith('Bearer '):
             raise InvalidTokenError()
         token = data.replace('Bearer ', '')
 
         # Decode the token to get the user_id stored in payload
         try:
             algo = get_unverified_header(token)['alg']
-            user_id = decode(token, Config.JWT_SECRET_KEY, algorithms=[algo])['user_id']
+            user_id = decode(token, Config.JWT_SECRET_KEY, algorithms=[algo])['jti']
         except PyJWTError:
             raise InvalidTokenError()
 

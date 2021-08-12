@@ -4,7 +4,7 @@ from flask import Flask
 
 from config.config import Config
 from database import db
-from errors import Error, StatusCode, NotFoundError
+from errors import Error, StatusCode, NotFoundError, InternalServerError
 from resources import register_resources
 
 app = Flask(__name__)
@@ -37,4 +37,4 @@ def error_handler(error):
 @app.errorhandler(Exception)
 def exception_handler(error):
     app.log_exception(error)
-    return Error().get_response()
+    return InternalServerError().get_response()
