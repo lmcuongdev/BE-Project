@@ -41,4 +41,4 @@ VALUES ('random'),
        ('sport'),
        ('technology'),
        ('entertainment'),
-       ('date and times'),
+       ('date and times')

@@ -12,14 +12,19 @@ class Error(Exception):
 
     def __init__(self, message=None):
         self.error_message = message or self.default_error_message
+        super().__init__(self.error_message)
 
     def get_response(self):
         return {'error_message': self.error_message}, self.status_code
 
 
-class SchemaValidationError(Error):
-    default_error_message = 'Bad request input.'
+class BadRequestError(Error):
+    default_error_message = 'Bad request.'
     status_code = StatusCode.BAD_REQUEST
+
+
+class SchemaValidationError(BadRequestError):
+    default_error_message = 'Bad request input.'
 
     def __init__(self, error_messages, message=None):
         super().__init__(message)
