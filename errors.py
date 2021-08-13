@@ -29,7 +29,9 @@ class SchemaValidationError(BadRequestError):
     def __init__(self, error_messages, message=None):
         super().__init__(message)
         print(error_messages)
-        self.error_data = {field: error_messages[field][0] for field in error_messages}
+        self.error_data = {
+            field: error_messages[field][0] for field in error_messages
+        }
 
     def get_response(self):
         response = super().get_response()

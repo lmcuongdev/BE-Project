@@ -1,13 +1,13 @@
-from flask import request
 from flask_bcrypt import check_password_hash, generate_password_hash
 from flask_restful import Resource
 from marshmallow import ValidationError
 
-from errors import NotFoundError, PermissionDeniedError, SchemaValidationError, \
-    IncorrectCredentialError, BadRequestError
+from errors import NotFoundError, PermissionDeniedError, BadRequestError, \
+    IncorrectCredentialError
 from helpers.auth import create_access_token, jwt_required
+from helpers.general import input_validated
 from models.user import UserModel
-from schemas.auth import AccessTokenSchema
+from schemas.auth import AuthSchema, LoginRequestSchema
 from schemas.user import UserSchema
 
 
@@ -24,21 +24,15 @@ class User(Resource):
             raise NotFoundError()
 
         # Get the user and return
-        user_schema = UserSchema(only=('id', 'username', 'created_at'))
+        user_schema = UserSchema()
         data = user_schema.dump(user)
 
         return data
 
 
 class UserRegister(Resource):
-    def post(self):
-        #  Validate input
-        user_schema = UserSchema(only=('username', 'password'))
-        try:
-            valid_data = user_schema.load(request.get_json())
-        except ValidationError as e:
-            raise SchemaValidationError(error_messages=e.messages)
-
+    @input_validated(AuthSchema())
+    def post(self, valid_data):
         # Check if username existed
         if UserModel.has_username(valid_data['username']):
             raise BadRequestError(message='Username already existed.')
@@ -46,20 +40,23 @@ class UserRegister(Resource):
         hash_password = generate_password_hash(valid_data['password'])
 
         # Create new User
-        user = UserModel(username=valid_data['username'], password=hash_password)
+        user = UserModel(username=valid_data['username'],
+                         password=hash_password)
         user.save()
 
         return {}
 
 
 class UserLogin(Resource):
-    def post(self):
-        #  Validate input
-        schema = AccessTokenSchema()
+    @input_validated(LoginRequestSchema())
+    def post(self, valid_data):
+        # If the username or password doesn't match our database design,
+        # then we don't need to query the database, instead return the
+        # unauthorized response right away
         try:
-            valid_data = schema.load(request.get_json())
-        except ValidationError as e:
-            raise SchemaValidationError(error_messages=e.messages)
+            valid_data = AuthSchema().load(valid_data)
+        except ValidationError:
+            raise IncorrectCredentialError()
 
         username, password = valid_data['username'], valid_data['password']
 

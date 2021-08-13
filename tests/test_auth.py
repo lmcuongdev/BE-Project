@@ -25,7 +25,7 @@ def test_register_failed_missing_field(client):
     assert {'password'} == set(response_data['error_data'].keys())
 
 
-@pytest.mark.parametrize('invalid_username', ['has space', '_' * 21])
+@pytest.mark.parametrize('invalid_username', ['has space', '_' * 21, ''])
 def test_register_failed_invalid_username(client, invalid_username):
     """Failed when username contains space or length>20"""
     response = client.post('/auth/register', json={
@@ -78,15 +78,22 @@ def test_login_success(client, seed_users):
     assert {'access_token'} == response_data.keys()
 
 
-def test_login_failed_wrong_credential(client):
-    response = client.post('/auth/login', json={
+@pytest.mark.parametrize('payload', [
+    {
         'username': 'wrong_username',
-        'password': 'wrong_password'
-    })
+        'password': 'username'
+    },
+    {
+        'username': 'has space',
+        'password': 'xxx',
+    },
+])
+def test_login_failed_wrong_credential(client, payload):
+    response = client.post('/auth/login', json=payload)
     response_data = response.get_json()
 
     assert response.status_code == UnauthorizedError.status_code
-    assert {'error_message'} == response_data.keys()
+    assert {'error_message'} == set(response_data.keys())
 
 
 def test_login_missing_field(client):

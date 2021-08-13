@@ -5,7 +5,8 @@ import pytest
 from marshmallow import ValidationError
 
 from config.config import General
-from errors import NotFoundError, InvalidTokenError, SchemaValidationError, PermissionDeniedError
+from errors import NotFoundError, InvalidTokenError, SchemaValidationError, \
+    PermissionDeniedError
 from schemas.item import ItemSchema
 
 INVALID_FIELDS_TEST_DATA = [
@@ -14,8 +15,8 @@ INVALID_FIELDS_TEST_DATA = [
         'invalid_fields': ['description', 'category_id']
     },
     {
-        'payload': {'description': '', 'category_id': 1},
-        'invalid_fields': ['name']
+        'payload': {'description': '       ', 'category_id': 1},
+        'invalid_fields': ['name', 'description']
     },
     {
         'payload': {'name': '_' * 201, 'description': '_', 'category_id': 1},
@@ -26,7 +27,8 @@ INVALID_FIELDS_TEST_DATA = [
         'invalid_fields': ['name', 'description', 'category_id']
     },
     {
-        'payload': {'name': '_' * 201, 'description': '_' * 2001, 'category_id': 99},
+        'payload': {'name': '_' * 201, 'description': '_' * 2001,
+                    'category_id': 99},
         'invalid_fields': ['name', 'description', 'category_id']
     },
 ]
@@ -39,15 +41,17 @@ def test_get_items_with_no_param(client, seed_items):
     assert response.status_code == 200
 
     # Check each key
-    assert isinstance(response_data['items'], list)
+    assert type(response_data['items']) is list
     assert response_data['items_per_page'] == 10
     assert response_data['page'] == 1
     assert response_data['total_items'] == len(seed_items)
 
     # Check if dates is sorted ascending
     date_formatted = map(
-        lambda item: datetime.strptime(item['created_at'], General.TIMESTAMP_FORMAT)
-        , response_data['items']
+        lambda item: datetime.strptime(
+            item['created_at'],
+            General.TIMESTAMP_FORMAT),
+        response_data['items']
     )
     dates = list(date_formatted)
     assert dates == sorted(dates)
@@ -71,7 +75,8 @@ def test_get_items_with_page_param(client, seed_items):
 
     # Check if dates is sorted ascending
     date_formatted = map(
-        lambda item: datetime.strptime(item['created_at'], General.TIMESTAMP_FORMAT),
+        lambda item: datetime.strptime(item['created_at'],
+                                       General.TIMESTAMP_FORMAT),
         response_data['items']
     )
     dates = list(date_formatted)
@@ -107,11 +112,13 @@ def test_get_items_with_all_parameters(client):
     assert all(name_contain_keyword)
 
     # Check sorting condition
-    names = [category[params['sort_by']] for category in response_data['items']]
+    names = [category[params['sort_by']] for category in
+             response_data['items']]
     assert names == sorted(names, reverse=True)
 
     # Check category_id field
-    category_id_match = (item['category_id'] == params['category_id'] for item in response_data['items'])
+    category_id_match = (item['category_id'] == params['category_id'] for item
+                         in response_data['items'])
     assert all(category_id_match)
 
 
@@ -147,7 +154,8 @@ def test_get_item_detail_not_found(client):
     response_data = response.get_json()
 
     assert response.status_code == NotFoundError.status_code
-    assert response_data['error_message'] == NotFoundError.default_error_message
+    assert response_data[
+               'error_message'] == NotFoundError.default_error_message
 
 
 def test_create_item_success(client, auth_user):
@@ -200,12 +208,14 @@ def test_create_item_failed_invalid_fields(client, auth_user, test_data):
     headers = {
         'Authorization': f"Bearer {auth_user['access_token']}"
     }
-    response = client.post('/items', json=test_data['payload'], headers=headers)
+    response = client.post('/items', json=test_data['payload'],
+                           headers=headers)
     response_data = response.get_json()
 
     assert response.status_code == SchemaValidationError.status_code
     assert {'error_message', 'error_data'} == set(response_data.keys())
-    assert set(test_data['invalid_fields']) == set(response_data['error_data'].keys())
+    assert set(test_data['invalid_fields']) == set(
+        response_data['error_data'].keys())
 
 
 def test_create_item_failed_unknown_fields(client, auth_user):
@@ -224,7 +234,8 @@ def test_create_item_failed_unknown_fields(client, auth_user):
 
 
 def test_edit_item_success(client, seed_items, auth_user):
-    """Edit item successfully when the authenticated user is the item's owner"""
+    """Edit item successfully when the authenticated user is the item's owner
+    """
 
     # Based on the seed data, we assume the authenticated user own this item
     item = seed_items[0]
@@ -237,7 +248,8 @@ def test_edit_item_success(client, seed_items, auth_user):
         'description': 'new desc',
         'category_id': 1,
     }
-    response = client.put(f"/items/{item['id']}", json=payload, headers=headers)
+    response = client.put(f"/items/{item['id']}", json=payload,
+                          headers=headers)
     response_data = response.get_json()
 
     assert response.status_code == 200
@@ -271,16 +283,19 @@ def test_edit_item_failed_permission_denied(client, seed_items, auth_user):
         'description': 'new desc',
         'category_id': 1,
     }
-    response = client.put(f"/items/{item['id']}", json=payload, headers=headers)
+    response = client.put(f"/items/{item['id']}", json=payload,
+                          headers=headers)
     response_data = response.get_json()
 
     assert response.status_code == PermissionDeniedError.status_code
     assert {'error_message'} == set(response_data.keys())
-    assert response_data['error_message'] == PermissionDeniedError.default_error_message
+    assert response_data[
+               'error_message'] == PermissionDeniedError.default_error_message
 
 
 @pytest.mark.parametrize('test_data', INVALID_FIELDS_TEST_DATA)
-def test_edit_item_failed_invalid_fields(client, seed_items, auth_user, test_data):
+def test_edit_item_failed_invalid_fields(client, seed_items, auth_user,
+                                         test_data):
     """Edit item failed when the user is the item's owner but the provided data is invalid"""
 
     # Based on the seed data, we assume the authenticated user own this item
@@ -289,12 +304,14 @@ def test_edit_item_failed_invalid_fields(client, seed_items, auth_user, test_dat
     headers = {
         'Authorization': f"Bearer {auth_user['access_token']}"
     }
-    response = client.put(f"/items/{item['id']}", json=test_data['payload'], headers=headers)
+    response = client.put(f"/items/{item['id']}", json=test_data['payload'],
+                          headers=headers)
     response_data = response.get_json()
 
     assert response.status_code == SchemaValidationError.status_code
     assert {'error_message', 'error_data'} == set(response_data.keys())
-    assert set(test_data['invalid_fields']) == set(response_data['error_data'].keys())
+    assert set(test_data['invalid_fields']) == set(
+        response_data['error_data'].keys())
 
 
 def test_delete_item_success(client, seed_items, auth_user):
@@ -332,4 +349,5 @@ def test_delete_item_failed_permission_denied(client, seed_items, auth_user):
 
     assert response.status_code == PermissionDeniedError.status_code
     assert {'error_message'} == set(response_data.keys())
-    assert response_data['error_message'] == PermissionDeniedError.default_error_message
+    assert response_data[
+               'error_message'] == PermissionDeniedError.default_error_message
