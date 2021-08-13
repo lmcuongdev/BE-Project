@@ -1,5 +1,5 @@
-from urllib.parse import urlencode
 from datetime import datetime
+
 from config.config import General
 
 
@@ -10,15 +10,17 @@ def test_get_categories(client):
     assert response.status_code == 200
 
     # Check each key
-    assert isinstance(response_data['categories'], list)
+    assert type(response_data['categories']) is list
     assert response_data['items_per_page'] == 10
     assert response_data['page'] == 1
-    assert isinstance(response_data['total_items'], int)
+    assert type(response_data['total_items']) is int
 
     # Check if dates is sorted ascending
     date_formatted = map(
-        lambda category: datetime.strptime(category['created_at'], General.TIMESTAMP_FORMAT)
-        , response_data['categories']
+        lambda category: datetime.strptime(
+            category['created_at'],
+            General.TIMESTAMP_FORMAT),
+        response_data['categories']
     )
     dates = list(date_formatted)
 
@@ -44,7 +46,9 @@ def test_get_categories_with_page_parameters(client):
 
     # Check if dates is sorted ascending
     date_formatted = map(
-        lambda category: datetime.strptime(category['created_at'], General.TIMESTAMP_FORMAT),
+        lambda category: datetime.strptime(
+            category['created_at'],
+            General.TIMESTAMP_FORMAT),
         response_data['categories']
     )
     dates = list(date_formatted)

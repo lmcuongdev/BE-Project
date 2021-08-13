@@ -1,16 +1,24 @@
 import logging
+from os import environ
 
 from flask import Flask
 
-from config.config import Config
+from config.config import DevelopmentConfig, ProductionConfig, StagingConfig
 from database import db
-from errors import Error, StatusCode, NotFoundError
+from errors import Error, StatusCode, NotFoundError, InternalServerError
 from resources import register_resources
 
 app = Flask(__name__)
 
+env = environ.get('ENVIRONMENT', 'dev')
+if env == 'dev':
+    app.config.from_object(DevelopmentConfig)
+elif env == 'prod':
+    app.config.from_object(ProductionConfig)
+elif env == 'stg':
+    app.config.from_object(StagingConfig)
+
 # configuring
-app.config.from_object(Config)
 logging.basicConfig(filename='logs.log',
                     format=f'[%(asctime)s] %(levelname)s: %(message)s'
                     )
@@ -37,4 +45,4 @@ def error_handler(error):
 @app.errorhandler(Exception)
 def exception_handler(error):
     app.log_exception(error)
-    return Error().get_response()
+    return InternalServerError().get_response()

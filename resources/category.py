@@ -1,20 +1,15 @@
 from flask_restful import Resource
-from flask import request
-from marshmallow import ValidationError
 
+from helpers.general import input_validated, make_query_filterable
 from models.category import CategoryModel
 from schemas.category import CategorySchema, CategoryQueryParameterSchema
-from errors import SchemaValidationError
 
 
 class CategoryList(Resource):
-    def get(self):
-        # Check if query parameter is in valid format
-        query_param_schema = CategoryQueryParameterSchema()
-        try:
-            params = query_param_schema.load(request.args)
-        except ValidationError as e:
-            raise SchemaValidationError(e.messages)
+    @input_validated(CategoryQueryParameterSchema(), query_param=True)
+    def get(self, valid_data):
+        # Reformat the query data to prepare for querying database
+        params = make_query_filterable(valid_data, CategoryModel)
 
         # Find all the categories that match these query data
         category_page = CategoryModel.query \

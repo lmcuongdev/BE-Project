@@ -1,7 +1,8 @@
 from flask_restful import Api
-from resources.user import User, UserLogin, UserRegister
+
 from resources.category import CategoryList
 from resources.item import Item, ItemList
+from resources.user import User, UserLogin, UserRegister
 
 
 def register_resources(app):

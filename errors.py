@@ -7,8 +7,8 @@ class StatusCode:
 
 
 class Error(Exception):
-    default_error_message = 'Internal server error.'
-    status_code = StatusCode.INTERNAL_SERVER_ERROR
+    default_error_message = None
+    status_code = None
 
     def __init__(self, message=None):
         self.error_message = message or self.default_error_message
@@ -28,7 +28,10 @@ class SchemaValidationError(BadRequestError):
 
     def __init__(self, error_messages, message=None):
         super().__init__(message)
-        self.error_data = {field: error_messages[field][0] for field in error_messages}
+        print(error_messages)
+        self.error_data = {
+            field: error_messages[field][0] for field in error_messages
+        }
 
     def get_response(self):
         response = super().get_response()
@@ -58,3 +61,8 @@ class PermissionDeniedError(Error):
 class NotFoundError(Error):
     default_error_message = 'Not found.'
     status_code = StatusCode.NOT_FOUND
+
+
+class InternalServerError(Error):
+    default_error_message = 'Internal server error.'
+    status_code = StatusCode.INTERNAL_SERVER_ERROR

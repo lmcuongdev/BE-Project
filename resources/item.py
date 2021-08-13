@@ -1,21 +1,19 @@
-from flask import request
 from flask_restful import Resource
-from marshmallow import ValidationError
 
-from errors import SchemaValidationError, NotFoundError
 from helpers.auth import jwt_required, item_owner_required
+from helpers.general import item_existed, input_validated, \
+    make_query_filterable
 from models.item import ItemModel
-from schemas.item import ItemSchema, ItemQueryParameterSchema
+from schemas.item import ItemSchema, UpdateItemSchema, ItemQueryParameterSchema
 
 
 class ItemList(Resource):
-    def get(self):
-        # Check if query parameter is in valid format
-        query_param_schema = ItemQueryParameterSchema()
-        try:
-            params = query_param_schema.load(request.args)
-        except ValidationError as e:
-            raise SchemaValidationError(e.messages)
+    @input_validated(ItemQueryParameterSchema(), query_param=True)
+    def get(self, valid_data):
+        # Reformat the query data to prepare for querying database
+        params = make_query_filterable(valid_data, ItemModel)
+
+        assert valid_data is not params
 
         # Find all the items that match these query data
         item_page = ItemModel.query \
@@ -38,20 +36,10 @@ class ItemList(Resource):
         }
 
     @jwt_required
-    def post(self, auth_user):
-        #  Get the data sent from client
-        payload = request.get_json()
-        payload['user_id'] = auth_user.id
-
-        # Validate input
-        item_schema = ItemSchema(only=('name', 'description', 'user_id', 'category_id'))
-        try:
-            valid_data = item_schema.load(payload)
-        except ValidationError as e:
-            raise SchemaValidationError(error_messages=e.messages)
-
+    @input_validated(UpdateItemSchema())
+    def post(self, valid_data, auth_user):
         # Create new item
-        item = ItemModel(**valid_data)
+        item = ItemModel(user_id=auth_user.id, **valid_data)
         item.save()
 
         data = ItemSchema().dump(item)
@@ -60,27 +48,18 @@ class ItemList(Resource):
 
 
 class Item(Resource):
-    def get(self, item_id):
+    @item_existed
+    def get(self, item, **_kwargs):
         # Search fot this item in database
-        item = ItemModel.query.get(item_id)
-        if item is None:
-            raise NotFoundError()
-
         data = ItemSchema().dump(item)
 
         return data
 
     @jwt_required
+    @item_existed
     @item_owner_required
-    def put(self, item_id, auth_user, item):
-        # Get request body and validate input
-        payload = request.get_json()
-        item_schema = ItemSchema(only=('name', 'description', 'category_id'))
-        try:
-            valid_data = item_schema.load(payload)
-        except ValidationError as e:
-            raise SchemaValidationError(error_messages=e.messages)
-
+    @input_validated(UpdateItemSchema())
+    def put(self, item, valid_data, **_kwargs):
         # Update data
         item.update(**valid_data)
         item.save()
@@ -90,8 +69,9 @@ class Item(Resource):
         return data
 
     @jwt_required
+    @item_existed
     @item_owner_required
-    def delete(self, item_id, auth_user, item):
+    def delete(self, item, **_kwargs):
         item.delete()
 
         return {}
