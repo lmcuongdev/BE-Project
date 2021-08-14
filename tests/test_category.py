@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from config.config import General
+from constants import General
 
 
 def test_get_categories(client):

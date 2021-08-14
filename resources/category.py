@@ -6,7 +6,7 @@ from schemas.category import CategorySchema, CategoryQueryParameterSchema
 
 
 class CategoryList(Resource):
-    @input_validated(CategoryQueryParameterSchema(), query_param=True)
+    @input_validated(CategoryQueryParameterSchema())
     def get(self, valid_data):
         # Reformat the query data to prepare for querying database
         params = make_query_filterable(valid_data, CategoryModel)

@@ -2,7 +2,7 @@ from flask_bcrypt import check_password_hash, generate_password_hash
 from flask_restful import Resource
 from marshmallow import ValidationError
 
-from errors import NotFoundError, PermissionDeniedError, BadRequestError, \
+from errors import PermissionDeniedError, BadRequestError, \
     IncorrectCredentialError
 from helpers.auth import create_access_token, jwt_required
 from helpers.general import input_validated
@@ -18,14 +18,9 @@ class User(Resource):
         if user_id != auth_user.id:
             raise PermissionDeniedError()
 
-        # Check if this user_id exist
-        user = UserModel.query.get(user_id)
-        if not user:
-            raise NotFoundError()
-
         # Get the user and return
         user_schema = UserSchema()
-        data = user_schema.dump(user)
+        data = user_schema.dump(auth_user)
 
         return data
 

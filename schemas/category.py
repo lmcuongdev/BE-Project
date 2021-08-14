@@ -1,6 +1,6 @@
 from marshmallow import Schema, fields, validate
 
-from config.config import General
+from constants import General
 from schemas.base_query_parameter import QueryParameterSchema
 
 

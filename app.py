@@ -3,22 +3,19 @@ from os import environ
 
 from flask import Flask
 
-from config.config import DevelopmentConfig, ProductionConfig, StagingConfig
+from config import get_config
+from constants import StatusCode
 from database import db
-from errors import Error, StatusCode, NotFoundError, InternalServerError
+from errors import Error, NotFoundError, InternalServerError
 from resources import register_resources
 
 app = Flask(__name__)
 
+# get config based on environment
 env = environ.get('ENVIRONMENT', 'dev')
-if env == 'dev':
-    app.config.from_object(DevelopmentConfig)
-elif env == 'prod':
-    app.config.from_object(ProductionConfig)
-elif env == 'stg':
-    app.config.from_object(StagingConfig)
+app.config.from_object(get_config(env))
 
-# configuring
+# config logging
 logging.basicConfig(filename='logs.log',
                     format=f'[%(asctime)s] %(levelname)s: %(message)s'
                     )

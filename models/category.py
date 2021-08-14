@@ -1,5 +1,5 @@
 from app import db
-from models.base_model import BaseModel
+from models.base import BaseModel
 
 
 class CategoryModel(BaseModel):
