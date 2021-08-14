@@ -4,7 +4,7 @@ from random import choice
 import pytest
 from marshmallow import ValidationError
 
-from config.config import General
+from constants import General
 from errors import NotFoundError, InvalidTokenError, SchemaValidationError, \
     PermissionDeniedError
 from schemas.item import ItemSchema
@@ -29,7 +29,12 @@ INVALID_FIELDS_TEST_DATA = [
     {
         'payload': {'name': '_' * 201, 'description': '_' * 2001,
                     'category_id': 99},
-        'invalid_fields': ['name', 'description', 'category_id']
+        'invalid_fields': ['name', 'description']
+    },
+    {
+        'payload': {'name': '_' * 200, 'description': '_' * 2000,
+                    'category_id': 99},
+        'invalid_fields': ['category_id']
     },
 ]
 

@@ -4,6 +4,7 @@ from flask import request
 from marshmallow import ValidationError
 
 from errors import NotFoundError, SchemaValidationError
+from models.category import CategoryModel
 from models.item import ItemModel
 
 
@@ -27,11 +28,16 @@ def item_existed(fn):
     return wrapper
 
 
-def input_validated(schema, query_param=False):
+def input_validated(schema):
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            input_data = request.args if query_param else request.get_json()
+            method = request.method
+
+            if method in ('POST', 'PUT'):
+                input_data = request.get_json()
+            else:
+                input_data = request.args
 
             try:
                 valid_data = schema.load(input_data)
@@ -43,6 +49,25 @@ def input_validated(schema, query_param=False):
         return wrapper
 
     return decorator
+
+
+def has_related_category(fn):
+    """Check if the requested category_id existed in database
+    This should be used after @input_validated to receive valid_data as
+    keyword argument
+    """
+
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        valid_data = kwargs['valid_data']
+
+        category = CategoryModel.query.get(valid_data['category_id'])
+        if category is None:
+            error_messages = {'category_id': ['The category_id is invalid']}
+            raise SchemaValidationError(error_messages)
+        return fn(*args, **kwargs)
+
+    return wrapper
 
 
 def make_query_filterable(query_params, model):
@@ -67,13 +92,5 @@ def make_query_filterable(query_params, model):
     data['sort_by'] = sort_column
     data['sort_type'] = sort_type
     data['keyword'] = keyword_filter
-
-    if model is ItemModel:
-        if 'category_id' in data:
-            # If the field is provided, create a condition using its column
-            data['category_id'] = ItemModel.category_id == data['category_id']
-        else:
-            # Set the field to True, so the query will ignore the condition
-            data['category_id'] = True
 
     return data

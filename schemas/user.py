@@ -1,6 +1,6 @@
 from marshmallow import Schema, fields
 
-from config.config import General
+from constants import General
 
 
 class UserSchema(Schema):

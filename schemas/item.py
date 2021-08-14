@@ -1,7 +1,6 @@
-from marshmallow import Schema, fields, validate, pre_load, validates, ValidationError
+from marshmallow import Schema, fields, validate, pre_load
 
-from config.config import General
-from models.category import CategoryModel
+from constants import General
 from schemas.base_query_parameter import QueryParameterSchema
 
 
@@ -15,7 +14,7 @@ class ItemSchema(Schema):
     updated_at = fields.DateTime(format=General.TIMESTAMP_FORMAT)
 
 
-class UpdateItemSchema(Schema):
+class ItemUpdateSchema(Schema):
     name = fields.String(required=True,
                          validate=[
                              validate.Length(min=1, max=200)
@@ -26,12 +25,6 @@ class UpdateItemSchema(Schema):
                                 ])
     category_id = fields.Integer(required=True)
 
-    @validates('category_id')
-    def validate_category_id(self, category_id):
-        category = CategoryModel.query.get(category_id)
-        if category is None:
-            raise ValidationError('The category id is invalid')
-
     @pre_load
     def trim_data(self, data, **_kwargs):
         keys = ['name', 'description']
@@ -40,6 +33,10 @@ class UpdateItemSchema(Schema):
         data.update(trimmed_data)
 
         return data
+
+
+class ItemCreateSchema(ItemUpdateSchema):
+    pass
 
 
 class ItemQueryParameterSchema(QueryParameterSchema):

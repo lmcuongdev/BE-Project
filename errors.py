@@ -1,9 +1,4 @@
-class StatusCode:
-    BAD_REQUEST = 400
-    UNAUTHORIZED = 401
-    FORBIDDEN = 403
-    NOT_FOUND = 404
-    INTERNAL_SERVER_ERROR = 500
+from constants import StatusCode
 
 
 class Error(Exception):
@@ -28,7 +23,6 @@ class SchemaValidationError(BadRequestError):
 
     def __init__(self, error_messages, message=None):
         super().__init__(message)
-        print(error_messages)
         self.error_data = {
             field: error_messages[field][0] for field in error_messages
         }
@@ -50,7 +44,7 @@ class UnauthorizedError(Error):
 
 
 class InvalidTokenError(UnauthorizedError):
-    default_error_message = 'Invalid access token'
+    default_error_message = 'Invalid access token.'
 
 
 class PermissionDeniedError(Error):

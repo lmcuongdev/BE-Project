@@ -4,7 +4,7 @@ from functools import wraps
 from flask import request
 from jwt import encode, decode, get_unverified_header, PyJWTError
 
-from config.config import Config
+from config.base import BaseConfig
 from errors import InvalidTokenError, PermissionDeniedError
 from models.user import UserModel
 
@@ -12,9 +12,9 @@ from models.user import UserModel
 def create_access_token(user_id):
     """Create the access token and put user_id in the payload"""
     access_token = encode({
-        'jti': user_id,
-        'exp': datetime.utcnow() + Config.JWT_ACCESS_TOKEN_EXPIRES
-    }, Config.JWT_SECRET_KEY)
+        'iss': user_id,
+        'exp': datetime.utcnow() + BaseConfig.JWT_ACCESS_TOKEN_EXPIRES
+    }, BaseConfig.JWT_SECRET_KEY)
 
     return access_token
 
@@ -40,8 +40,9 @@ def jwt_required(fn):
         # Decode the token to get the user_id stored in payload
         try:
             algo = get_unverified_header(token)['alg']
-            payload = decode(token, Config.JWT_SECRET_KEY, algorithms=[algo])
-            user_id = payload['jti']
+            payload = decode(token, BaseConfig.JWT_SECRET_KEY,
+                             algorithms=[algo])
+            user_id = payload['iss']
         except PyJWTError:
             raise InvalidTokenError()
 

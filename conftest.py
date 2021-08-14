@@ -2,40 +2,29 @@ import pytest
 from flask_bcrypt import generate_password_hash
 
 from app import app
-from config.config import TestConfig
-from models.user import UserModel
-from models.item import ItemModel
+from config.test import TestConfig
 from database import db
 from helpers.auth import create_access_token
+from models.item import ItemModel
+from models.user import UserModel
 
 
-# Utility class
-class Utils:
-    @classmethod
-    def clean_db(cls):
-        with app.app_context():
-            ItemModel.query.delete()
-            UserModel.query.delete()
-            db.session.commit()
-
-
-# fixture that returns the utility class
-@pytest.fixture(scope='session')
-def utils():
-    return Utils
+@pytest.fixture(autouse=True)
+def clean_db():
+    with app.app_context():
+        ItemModel.query.delete()
+        UserModel.query.delete()
+        db.session.commit()
 
 
 # fixture that setup the Flask test client
 @pytest.fixture()
-def client(utils):
+def client():
     # Setting up the application
     app.config.from_object(TestConfig)
 
     with app.test_client() as client:
-        yield client
-
-    # Clear database
-    utils.clean_db()
+        return client
 
 
 # fixture to seed users data
